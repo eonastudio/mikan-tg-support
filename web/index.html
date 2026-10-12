@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Support tickets</title>
+<link rel="stylesheet" href="style.css">
+<script src="app.js" defer></script>
+</head>
+<body>
+<header id="topbar">
+  <div class="brand">
+    <span class="logo" aria-hidden="true">🎧</span>
+    <span id="app-title">Тикеты поддержки</span>
+    <span id="bot-badge" class="badge off" title="">—</span>
+  </div>
+  <nav id="tabs" aria-label="sections">
+    <button type="button" class="tab active" data-view="tickets"></button>
+    <button type="button" class="tab" data-view="settings"></button>
+    <button type="button" class="tab" data-view="status"></button>
+  </nav>
+</header>
+
+<div id="toast" class="toast hidden" role="status"></div>
+
+<main id="main">
+  <!-- Tickets list -->
+  <section id="view-tickets" class="view">
+    <div class="toolbar">
+      <div class="filters" role="group">
+        <button type="button" class="chip active" data-status="open"></button>
+        <button type="button" class="chip" data-status="closed"></button>
+        <button type="button" class="chip" data-status=""></button>
+      </div>
+      <input id="search" type="search" placeholder="" autocomplete="off" spellcheck="false">
+      <button type="button" id="refresh" class="btn ghost" title="">⟳</button>
+      <span id="list-count" class="muted"></span>
+    </div>
+    <div id="ticket-list" class="list" role="list"></div>
+    <p id="list-empty" class="empty hidden"></p>
+  </section>
+
+  <!-- Ticket dialog -->
+  <section id="view-ticket" class="view hidden">
+    <div class="toolbar">
+      <button type="button" id="back" class="btn ghost">←</button>
+      <div id="t-head" class="t-head"></div>
+      <div class="grow"></div>
+      <button type="button" id="t-ai-draft" class="btn ai hidden">✦ AI</button>
+      <button type="button" id="t-close" class="btn"></button>
+      <button type="button" id="t-reopen" class="btn hidden"></button>
+      <button type="button" id="t-delete" class="btn danger hidden"></button>
+    </div>
+    <div class="dialog-wrap">
+      <div id="messages" class="messages" role="log" aria-live="polite"></div>
+      <aside id="profile" class="profile hidden"></aside>
+    </div>
+    <div class="composer">
+      <textarea id="reply" rows="2" maxlength="4096" placeholder=""></textarea>
+      <div class="composer-btns">
+        <span id="reply-hint" class="muted"></span>
+        <button type="button" id="t-ai-send" class="btn ai hidden"></button>
+        <button type="button" id="t-send" class="btn primary"></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Settings -->
+  <section id="view-settings" class="view hidden">
+    <h2 data-i18n="set.bot"></h2>
+    <div class="grid">
+      <label><span data-i18n="set.token"></span>
+        <input id="s-token" type="password" autocomplete="new-password" placeholder="">
+        <small id="s-token-state" class="muted"></small>
+      </label>
+      <label><span data-i18n="set.api"></span>
+        <input id="s-api" type="text" spellcheck="false" placeholder="https://api.telegram.org">
+        <small class="muted" data-i18n="set.apiHelp"></small>
+      </label>
+      <label class="wide"><span data-i18n="set.greeting"></span>
+        <textarea id="s-greeting" rows="3" maxlength="4096"></textarea>
+      </label>
+    </div>
+    <div class="row">
+      <button type="button" id="test-bot" class="btn"></button>
+      <span id="test-bot-out" class="muted"></span>
+    </div>
+
+    <h2 data-i18n="set.ai"></h2>
+    <div class="grid">
+      <label class="check"><input id="s-ai-on" type="checkbox"><span data-i18n="set.aiOn"></span></label>
+      <label><span data-i18n="set.aiMode"></span>
+        <select id="s-ai-mode">
+          <option value="off">off</option>
+          <option value="draft">draft</option>
+          <option value="auto">auto</option>
+        </select>
+        <small class="muted" data-i18n="set.aiModeHelp"></small>
+      </label>
+      <label><span data-i18n="set.aiBase"></span>
+        <input id="s-ai-base" type="text" spellcheck="false" placeholder="https://api.openai.com/v1">
+      </label>
+      <label><span data-i18n="set.aiKey"></span>
+        <input id="s-ai-key" type="password" autocomplete="new-password" placeholder="">
+        <small id="s-ai-key-state" class="muted"></small>
+      </label>
+      <label><span data-i18n="set.aiModel"></span>
+        <input id="s-ai-model" type="text" spellcheck="false" placeholder="gpt-4o-mini">
+      </label>
+      <label><span data-i18n="set.aiDelay"></span>
+        <input id="s-ai-delay" type="number" min="0" max="86400" step="10">
+        <small class="muted" data-i18n="set.aiDelayHelp"></small>
+      </label>
+      <label><span data-i18n="set.aiLang"></span>
+        <select id="s-ai-lang">
+          <option value="" data-i18n="set.aiLangAuto"></option>
+          <option value="ru">ru</option>
+          <option value="en">en</option>
+        </select>
+      </label>
+      <label class="wide"><span data-i18n="set.aiSystem"></span>
+        <textarea id="s-ai-system" rows="3" maxlength="8000"></textarea>
+      </label>
+      <label class="wide"><span data-i18n="set.aiKnowledge"></span>
+        <textarea id="s-ai-knowledge" rows="6" maxlength="24000"></textarea>
+        <small class="muted" data-i18n="set.aiKnowledgeHelp"></small>
+      </label>
+    </div>
+    <div class="row">
+      <button type="button" id="test-ai" class="btn"></button>
+      <span id="test-ai-out" class="muted"></span>
+    </div>
+
+    <h2 data-i18n="set.other"></h2>
+    <div class="grid">
+      <label><span data-i18n="set.retention"></span>
+        <input id="s-retention" type="number" min="1" max="3650">
+      </label>
+    </div>
+
+    <div class="row danger-row">
+      <button type="button" id="clear-token" class="btn danger ghost"></button>
+      <button type="button" id="clear-key" class="btn danger ghost"></button>
+    </div>
+    <div class="row">
+      <button type="button" id="save" class="btn primary"></button>
+      <span id="save-out" class="muted"></span>
+    </div>
+  </section>
+
+  <!-- Status -->
+  <section id="view-status" class="view hidden">
+    <div id="status-body" class="status"></div>
+    <div class="row">
+      <button type="button" id="reindex" class="btn ghost"></button>
+      <button type="button" id="prune" class="btn ghost"></button>
+      <span id="maint-out" class="muted"></span>
+    </div>
+  </section>
+</main>
+
+<div id="lightbox" class="lightbox hidden" role="dialog" aria-modal="true">
+  <img id="lightbox-img" alt="">
+</div>
+</body>
+</html>

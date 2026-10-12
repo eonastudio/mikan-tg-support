@@ -1,0 +1,21 @@
+{
+  "id": "tg-support",
+  "category": "tools",
+  "name": {
+    "ru": "Бот техподдержки (тикеты)",
+    "en": "Support bot (tickets)"
+  },
+  "description": {
+    "ru": "Второй Telegram-бот технической поддержки: пользователи пишут боту — тикеты появляются в панели, агенты отвечают из панели. Заготовка ИИ-ответов с персонализацией по данным панели (события: платежи, окончание подписки, трафик).",
+    "en": "A second Telegram support bot: users write to the bot — tickets appear in the panel, agents answer from the panel. An AI answer scaffold personalized with the panel's data (events: payments, subscription end, traffic)."
+  },
+  "version": "0.1.0",
+  "protocol": 2,
+  "kind": "ui",
+  "mode": "http",
+  "permissions": ["ui", "kv", "events"],
+  "resources": { "mem_mb": 128 },
+  "image": "ghcr.io/getmikan/tool-tg-support",
+  "min_panel": "0.5.1.0-rc.6",
+  "homepage": "https://github.com/Miroshka000/mikan"
+}
