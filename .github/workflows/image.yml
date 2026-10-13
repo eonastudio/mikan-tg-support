@@ -1,0 +1,58 @@
+# Builds the addon image and pushes it to GHCR as
+# ghcr.io/<owner>/mikan-tg-support. The digest to paste into the mikan panel is
+# printed in the run's summary (and the package page shows it too).
+name: image
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Resolve the version
+        id: ver
+        run: |
+          v="${GITHUB_REF_NAME#v}"
+          case "$v" in v*|"") v="0.0.0-${GITHUB_SHA::8}" ;; esac
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/build-push-action@v6
+        id: build
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/mikan-tg-support:${{ steps.ver.outputs.version }}
+            ghcr.io/${{ github.repository_owner }}/mikan-tg-support:latest
+          build-args: VERSION=${{ steps.ver.outputs.version }}
+
+      - name: Publish the digest
+        run: |
+          {
+            echo "## mikan-tg-support ${{ steps.ver.outputs.version }}"
+            echo ""
+            echo "- image: \`ghcr.io/${{ github.repository_owner }}/mikan-tg-support\`"
+            echo "- digest: \`${{ steps.build.outputs.digest }}\`"
+            echo ""
+            echo "Panel → Addons → Marketplace → custom addon:"
+            echo "id \`tg-support\`, source custom, image above (no tag), digest above,"
+            echo "kind \`ui\`, mode \`http\`, permissions \`ui\`, \`kv\`, \`events\`, mem 128."
+          } >> "$GITHUB_STEP_SUMMARY"

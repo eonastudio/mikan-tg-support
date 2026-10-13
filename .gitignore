@@ -1,3 +1,4 @@
 /tg-support
 /tg-support.exe
 *.tar
+dist/
